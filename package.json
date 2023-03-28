@@ -1,0 +1,12 @@
+{
+  "name": "koa-demo",
+  "version": "1.0.0",
+  "main": "index.js",
+  "repository": "git@github.com:Sisiy-ung/koa-demo.git",
+  "author": "2424005179@qq.com <2424005179@qq.com>",
+  "license": "MIT",
+  "dependencies": {
+    "koa": "^2.14.1",
+    "nodemon": "^2.0.22"
+  }
+}
