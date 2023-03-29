@@ -1,6 +1,9 @@
 const Koa = require('koa')
 const fs = require('fs')
 const path = require('path')
+const { resolve } = require('path')
+const crypto = require('crypto')
+
 const mimes = {
     css: 'text/css',
     less: 'text/css',
@@ -38,6 +41,16 @@ const parseStatic = (dir) => {
     })
 }
 
+// 获取文件信息
+const getFileStat = (path) => {
+    return new Promise((resolve) => {
+        fs.stat(path, (_, stat) => {
+            resolve(stat)
+        })
+    })
+}
+
+
 const app = new Koa()
 
 app.use(async (ctx) => {
@@ -48,11 +61,29 @@ app.use(async (ctx) => {
         ctx.body = await parseStatic('./index.html')
     } else {
         const filePath = path.resolve(__dirname, `.${url}`)
-        // 设置类型
+        const fileBuffer = await parseStatic(filePath)
+
+        const ifNoneMatch = ctx.request.header['if-none-match']
+        // 生成内容的hash值
+        const hash = crypto.createHash('md5')
+        hash.update(fileBuffer)
+        const etag = `"${hash.digest('hex')}"`
+        ctx.set('Cache-Control', 'no-cache')
         ctx.set('Content-Type', parseMime(url))
-        
-        // 设置传输
-        ctx.body = await parseStatic(filePath)
+
+        // 对比hash值
+        if (ifNoneMatch === etag) {
+            ctx.status = 304
+        } else {
+            ctx.set('etag', etag)
+            ctx.body = fileBuffer
+        }
+
+
+
+
+
+
     }
 })
 
